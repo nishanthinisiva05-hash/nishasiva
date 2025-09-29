@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>College Event Management System</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+body { font-family: Arial; background: #f4f4f4; margin: 0; padding: 0; }
+header { background: #1e3d59; color: white; text-align: center; padding: 15px; }
+.container { max-width: 700px; margin: 30px auto; background: #fff; padding: 20px; border-radius: 10px; }
+input, select, button { width: 95%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; }
+button { background: #1e3d59; color: white; border: none; cursor: pointer; margin-top: 10px; }
+button:hover { background: #16324f; }
+.form-line { margin-bottom: 20px; }
+.candidate { margin: 8px 0; font-size: 16px; }
+.result { margin-top: 20px; padding: 15px; background: #f1f1f1; border-radius: 8px; }
+</style>
+</head>
+<body>
+
+<header>
+<h1>College Event Management System</h1>
+</header>
+
+<div class="container">
+<form id="EventForm">
+
+  <div class="form-line">
+    <label for="studentName">Name:</label><br>
+    <input type="text" id="studentName" placeholder="Enter Your Name" required>
+  </div>
+
+  <div class="form-line">
+    <label for="EventSelect">Event:</label><br>
+    <select id="EventSelect" required>
+      <option value="">Select Event</option>
+    </select>
+  </div>
+
+  <div class="form-line">
+    <label for="DepartmentSelect">Department:</label><br>
+    <select id="DepartmentSelect" required>
+      <option value="">Select Department</option>
+    </select>
+  </div>
+
+  <div class="form-line">
+    <label>Culturals:</label><br>
+    <div class="candidate">
+      <input type="radio" name="Culturals" id="freshers" value="Freshers">
+      <label for="freshers">Freshers</label>
+    </div>
+    <div class="candidate">
+      <input type="radio" name="Culturals" id="pongal" value="Pongal celebration">
+      <label for="pongal">Pongal celebration</label>
+    </div>
+    <div class="candidate">
+      <input type="radio" name="Culturals" id="farewell" value="Farewell">
+      <label for="farewell">Farewell</label>
+    </div>
+  </div>
+
+  <div class="form-line">
+    <button type="submit">Submit</button>
+  </div>
+
+</form>
+
+<div id="result" class="result" style="display:none;">
+<h3>Event Results</h3>
+<p id="textResults"></p>
+<canvas id="eventChart" width="400" height="200"></canvas>
+</div>
+</div>
+
+<script>
+const Events = [
+  "Solo Dance","Fashion show","Singing","Drama","Comedy","Drawing","Photography","Rangoli",
+  "Mehandi","Quiz","Food Fest","Chess","Carrom","Mime","Treasure hunt",
+  "Makeup workshop","Puzzle","Group Dance"
+];
+
+// Departments (sample)
+const Departments = ["BSC CS","BCA","BCOM","BBA","BIO TECH","MICROBIOLOGY","TAMIL","ENGLISH"];
+
+// Populate Event dropdown
+const EventSelect = document.getElementById('EventSelect');
+Events.forEach(d => {
+  const option = document.createElement('option');
+  option.value = d;
+  option.textContent = d;
+  EventSelect.appendChild(option);
+});
+
+// Populate Department dropdown
+const DepartmentSelect = document.getElementById('DepartmentSelect');
+Departments.forEach(dep => {
+  const option = document.createElement('option');
+  option.value = dep;
+  option.textContent = dep;
+  DepartmentSelect.appendChild(option);
+});
+
+// Store votes
+let Culturals = { "Freshers": 0, "Pongal celebration": 0, "Farewell": 0 };
+let StudentNames = [];
+
+const form = document.getElementById('EventForm');
+const resultDiv = document.getElementById('result');
+const textResults = document.getElementById('textResults');
+const ctx = document.getElementById('eventChart').getContext('2d');
+
+const EventChart = new Chart(ctx, {
+  type:'bar',
+  data:{
+    labels:Object.keys(Culturals),
+    datasets:[{
+      label:'Event Count',
+      data:Object.values(Culturals),
+      backgroundColor:['#1e3d59','#ff6b6b','#4ecdc4']
+    }]
+  },
+  options:{responsive:true, scales:{y:{beginAtZero:true}}}
+});
+
+form.addEventListener('submit', e=>{
+  e.preventDefault();
+  const name = document.getElementById('studentName').value.trim();
+  const selectedEvent = EventSelect.value;
+  const selectedDept = DepartmentSelect.value;
+  const selectedCultural = document.querySelector('input[name="Culturals"]:checked');
+
+  if(!name || !selectedEvent || !selectedDept || !selectedCultural){
+    alert("Please fill all fields and select a cultural event.");
+    return;
+  }
+
+  if(StudentNames.includes(name.toLowerCase())){
+    alert("Error: This name has already been registered!");
+    return;
+  }
+
+  StudentNames.push(name.toLowerCase());
+  Culturals[selectedCultural.value] += 1;
+
+  // Update text
+  textResults.innerHTML = `
+    ✅ ${name} registered for <b>${selectedEvent}</b> from <b>${selectedDept}</b>.<br><br>
+    📊 Freshers: ${Culturals["Freshers"]} <br>
+    📊 Pongal celebration: ${Culturals["Pongal celebration"]} <br>
+    📊 Farewell: ${Culturals["Farewell"]}
+  `;
+
+  // Update chart
+  EventChart.data.datasets[0].data = Object.values(Culturals);
+  EventChart.update();
+
+  resultDiv.style.display = 'block';
+});
+</script>
+
+</body>
+</html>
